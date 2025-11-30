@@ -26,7 +26,7 @@ if __name__ == "__main__":
         policy="MlpPolicy",
         env=vec_env,
         learning_rate=3e-4,
-        n_steps=512, 
+        n_steps=4, 
         batch_size=64,
         gae_lambda=0.95,
         gamma=0.99,
@@ -36,7 +36,7 @@ if __name__ == "__main__":
         device="cpu"
     )
 
-    total_timesteps = 20_000
+    total_timesteps = 128
     tqdm_cb = TQDMCallback(total_timesteps=total_timesteps, algo='PPO')
     logger_cb = ProteinRLLogger(check_freq=1)
     callback = CallbackList([tqdm_cb, logger_cb])

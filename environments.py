@@ -3,9 +3,9 @@ import numpy as np
 import pandas as pd
 from gymnasium import spaces
 
-
 class ProteinEnv(gym.Env):
     """
+    This would be used in a real setting where you're not confined to a DMS dataset!
     State: amino acid sequence (string or int array)
     Action: mutate position i to amino acid j
     """
@@ -52,9 +52,10 @@ class ProteinEnv(gym.Env):
         return obs, {}
 
     def step(self, action):
-        # import pdb;pdb.set_trace()
         pos, aa_idx = self._decode_action(action)
         print(f'Pos: {pos} and aa_idx: {aa_idx}')
+
+        # import pdb;pdb.set_trace()
 
         # Apply mutation
         new_state = self.state.copy()
@@ -65,7 +66,7 @@ class ProteinEnv(gym.Env):
 
         # You can choose episode termination rule:
         # e.g., fixed length episode of mutations
-        terminated = False
+        terminated = True # keep episodes length 1 to reset to WT?
         truncated = False
 
         self.state = new_state
