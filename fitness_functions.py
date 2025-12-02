@@ -2,7 +2,7 @@ import torch, esm, pickle, os
 import numpy as np
 import torch.nn as nn
 
-surrogate_path = 'aav_dms_surrogate_wrong.state_dict'
+surrogate_path = 'aav_dms_surrogate.state_dict'
 
 # Load the pretrained ESM2 8M model
 esm8_model, esm8_alphabet = esm.pretrained.esm2_t6_8M_UR50D()

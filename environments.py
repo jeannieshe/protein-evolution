@@ -20,6 +20,7 @@ class ProteinEnv(gym.Env):
         self.amino_acids = "ACDEFGHIKLMNPQRSTVWY"
         self.aa_to_idx = {aa: i for i, aa in enumerate(self.amino_acids)}
         self.idx_to_aa = {i: aa for aa, i in self.aa_to_idx.items()}
+        self.actions = []
 
         self.L = len(seq)
         self.fitness_fn = fitness_fn
@@ -29,7 +30,8 @@ class ProteinEnv(gym.Env):
         self.wt = np.array([self.aa_to_idx[a] for a in seq], dtype=np.int32)
 
         # action = choose a position to mutate, and choose an aa to mutate to
-        self.action_space = spaces.Discrete(self.L * 20)   # talk about indel limitation in write-up
+        # self.action_space = spaces.Discrete(self.L * 20)   # talk about indel limitation in write-up
+        self.action_space = spaces.MultiDiscrete([588-561+1, 20])  # DMS dataset only mutates in positions 561-588
 
         # observation = vector of length L with values in [0,19]
         self.observation_space = spaces.MultiDiscrete([20] * self.L)
@@ -41,8 +43,9 @@ class ProteinEnv(gym.Env):
         return ''.join([self.idx_to_aa[i] for i in seq])
 
     def _decode_action(self, action):
-        pos = action // 20
-        aa_idx = action % 20
+        pos, aa_idx = action
+        pos += 560
+        self.actions.append((pos, aa_idx))
         return pos, aa_idx
 
     def reset(self, *, seed=None, options=None):
@@ -54,8 +57,6 @@ class ProteinEnv(gym.Env):
     def step(self, action):
         pos, aa_idx = self._decode_action(action)
         print(f'Pos: {pos} and aa_idx: {aa_idx}')
-
-        # import pdb;pdb.set_trace()
 
         # Apply mutation
         new_state = self.state.copy()

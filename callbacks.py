@@ -49,6 +49,7 @@ class ProteinRLLogger(BaseCallback):
         self.mutation_counts = np.zeros(self.L)
 
     def _on_rollout_end(self):
+        import pdb;pdb.set_trace()
         # Called after each rollout (n_steps) - this is true katie checked
         env = self.training_env.envs[0]
         reward = np.mean(self.locals["rewards"])  # rollout mean reward
