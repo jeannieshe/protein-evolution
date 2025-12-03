@@ -18,20 +18,33 @@ def fitness_ESM(wt, mut, *args):
      '''
     return esm_pseudo_log_likelihood(wt, mut)
 
-def fitness_ESM_DMS(wt, mut, DMS):
+def fitness_ESM_DMS(wt, mut, DMS, esm_mean=-1.053, esm_std=2.006, dms_mean=-1.226, dms_std=3.045, alpha=0.5):
     ''' Calculate fitness based on ESM as well as querying DMS dataset. 
+        Normalizes both scores by using the mean and STD computed with compute_esm_dms_statistics.py
         Assumes DMS has columns `mutated_sequence` and `DMS_score`
+        DMS: mean=-1.226, std=3.045
+        ESM sampled with 100 mutants: mean=-1.053, std=2.006
+        
+        Args:
+            esm_mean, esm_std: Empirical statistics of ESM scores on your dataset
+            dms_mean, dms_std: Empirical statistics of DMS scores (from DMS['DMS_score'])
+            alpha: Weight for ESM (1-alpha for DMS). 0.5 = equal weight.
     '''
     ESM = esm_pseudo_log_likelihood(wt, mut)
+
     if len(DMS.loc[DMS.mutated_sequence == mut].DMS_score) > 0:   # exists in dataset
         DMS_score = DMS.loc[DMS.mutated_sequence == mut].DMS_score.item()
         print('Used DMS')
+
     else:   # surrogate!
         DMS_score = surrogate(torch.tensor(embed(mut))).item()
         print('Used surrogate')
 
-    # for now, combine just by addition. can choose other ways, to weigh one over the other.
-    return ESM + DMS_score
+    # Z score to normalize the weight between these two scores, ensuring one is not dominant
+    ESM_normalized = (ESM - esm_mean) / esm_std
+    DMS_normalized = (DMS_score - dms_mean) / dms_std
+
+    return alpha * ESM_normalized + (1 - alpha) * DMS_normalized
 
 #### HELPERS
 def embed(seq):
