@@ -65,7 +65,7 @@ class ProteinEnv(gym.Env):
         new_state[pos] = aa_idx
 
         # Reward from fitness function
-        reward = self.fitness_fn(self.idxs_to_letters(self.wt), self.idxs_to_letters(new_state), self.DMS)
+        reward, dataset_used = self.fitness_fn(self.idxs_to_letters(self.wt), self.idxs_to_letters(new_state), self.DMS)
 
         # You can choose episode termination rule:
         # e.g., fixed length episode of mutations
@@ -77,7 +77,11 @@ class ProteinEnv(gym.Env):
         self.state = new_state
         self.step_count += 1
         # print(self.idxs_to_letters(new_state))
-        return new_state.copy(), reward, terminated, truncated, {}
+        info = {'dataset_used': dataset_used, 
+        'mutation_count': (self.wt != new_state),
+        'num_mutations_per_variant': (self.wt != new_state).sum()}
+
+        return new_state.copy(), reward, terminated, truncated, info
 
     def render(self):
         seq_str = "".join(self.idx_to_aa[i] for i in self.state)
