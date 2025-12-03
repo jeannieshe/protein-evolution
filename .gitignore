@@ -3,7 +3,6 @@ __pycache__
 *.zip
 *.pkl
 *.out
-*.state_dict
 *.egg-info
 protein_logs/*
 protein_logs/

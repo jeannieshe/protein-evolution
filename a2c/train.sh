@@ -6,7 +6,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=16G
-#SBATCH --time=00:30:00
+#SBATCH --time=03:00:00
 #SBATCH --output=a2c/logs/%j-%x.out
 
 # Load your shell environment to activate your Conda environment

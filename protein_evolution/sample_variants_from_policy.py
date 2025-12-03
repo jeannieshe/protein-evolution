@@ -12,17 +12,21 @@ from protein_evolution.environments import ProteinEnv
 
 from datetime import datetime
 
-MODEL_PATH = 'a2c/a2c_pretraining'
+MODEL_PATH = '' # zip file
+MODEL_TYPE = '' # name to title .csv as
 NUM_VARIANTS = 10
 
 if __name__ == "__main__":
     # Allow model path to be passed as command line argument
     if len(sys.argv) > 1:
         MODEL_PATH = sys.argv[1]
+        print(f'Set model_path to be {MODEL_PATH}')
+        MODEL_TYPE = sys.argv[2]
+        print(f'Set model_type to be {MODEL_TYPE}')
     
-    if not MODEL_PATH:
-        print("Error: MODEL_PATH must be set. Either edit the script or pass it as an argument.")
-        print("Usage: python sample_variants_from_policy.py [model_path]")
+    if not MODEL_PATH or not MODEL_TYPE:
+        print("Error: MODEL_PATH and MODEL_TYPE must be set. Either edit the script or pass it as an argument.")
+        print("Usage: python sample_variants_from_policy.py [model_path] [model_type]")
         sys.exit(1)
     
     # Load wild-type sequence
@@ -86,7 +90,7 @@ if __name__ == "__main__":
 
     # Save results to CSV
     results_df = pd.DataFrame(results)
-    output_path = f'logs/{formatted_date}_sampled_variants.csv'
+    output_path = f'logs/{MODEL_TYPE}_{formatted_date}_sampled_variants.csv'
     results_df.to_csv(output_path, index=False)
     print(f"\n{'='*80}")
     print(f"Results saved to {output_path}")
