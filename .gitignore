@@ -1,0 +1,8 @@
+EvolvePro/
+__pycache__
+*.zip
+*.pkl
+*.out
+*.state_dict
+*.egg-info
+protein_logs/*
