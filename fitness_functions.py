@@ -15,7 +15,7 @@ def fitness_ESM(wt, mut, *args):
     ''' Calculate fitness solely based on ESM likelihoods. 
         We can use as a baseline, and to pre-train a policy to yield biologically feasible mutations (?)
      '''
-    return esm_pseudo_log_likelihood(wt, mut)
+    return esm_pseudo_log_likelihood(wt, mut), 'ESM'
 
 def fitness_ESM_DMS(wt, mut, DMS):
     ''' Calculate fitness based on ESM as well as querying DMS dataset. 
@@ -24,21 +24,18 @@ def fitness_ESM_DMS(wt, mut, DMS):
     ESM = esm_pseudo_log_likelihood(wt, mut)
     if len(DMS.loc[DMS.mutated_sequence == mut].DMS_score) > 0:   # exists in dataset
         DMS_score = DMS.loc[DMS.mutated_sequence == mut].DMS_score.item()
-        print('Used DMS')
+        dataset_used = 'DMS'
     else:   # surrogate!
         DMS_score = surrogate(torch.tensor(embed(mut))).item()
-        print('Used surrogate')
-
+        dataset_used = 'surrogate'
     # for now, combine just by addition. can choose other ways, to weigh one over the other.
-    return ESM + DMS_score
+    return ESM + DMS_score, dataset_used
 
 #### HELPERS
 def embed(seq):
     """ Compute ESM embedding (mean over all amino acids) of a protein """
     data = [("protein_id", seq)] 
     _, _, batch_tokens = batch_converter(data)
-
-    # import pdb;pdb.set_trace()
 
     with torch.no_grad():
         results = esm8_model(batch_tokens, repr_layers=[6], return_contacts=False)
@@ -206,71 +203,6 @@ def esm_pseudo_log_likelihood(wt_seq, mut_seq):
     
     return total_log_ratio
 
-
-# def esm_pseudo_log_likelihood(wt_seq, mut_seq):
-#     """
-#     Score only the mutated positions instead of entire protein.
-    
-#     Args:
-#         wt_seq: wild-type sequence
-#         mut_seq: mutant sequence
-#         mut_positions: list of positions that differ (if None, auto-detect)
-    
-#     Returns:
-#         float: log likelihood ratio (mutant - wild-type)
-#     """
-#     assert isinstance(wt_seq, str), 'WT is not a string'
-#     assert isinstance(mut_seq, str), 'Mutant is not a string'
-#     # find mutated positions if not provided
-#     mut_positions = [i for i in range(len(wt_seq)) if wt_seq[i] != mut_seq[i]]
-    
-#     if len(mut_positions) == 0:
-#         return 0.0  # no mutations
-    
-#     # tokenize both sequences
-#     _, _, wt_tokens = batch_converter([("wt", wt_seq)])
-#     _, _, mut_tokens = batch_converter([("mut", mut_seq)])
-#     wt_tokens = wt_tokens[0]
-#     mut_tokens = mut_tokens[0]
-    
-#     device = next(esm8_model.parameters()).device
-#     wt_tokens = wt_tokens.to(device)
-#     mut_tokens = mut_tokens.to(device)
-    
-#     total_log_ratio = 0.0
-    
-#     # score each mutated position
-#     for pos_idx in mut_positions:
-#         # account for BOS token (position 0 is BOS, so add 1)
-#         token_pos = pos_idx + 1
-        
-#         # mask wild-type at this position
-#         wt_masked = wt_tokens.clone()
-#         wt_masked[token_pos] = mask_idx
-        
-#         # mask mutant at this position
-#         mut_masked = mut_tokens.clone()
-#         mut_masked[token_pos] = mask_idx
-        
-#         with torch.no_grad():
-#             # get logits for both
-#             wt_logits = esm8_model(wt_masked.unsqueeze(0))["logits"][0, token_pos]
-#             mut_logits = esm8_model(mut_masked.unsqueeze(0))["logits"][0, token_pos]
-            
-#             # compute log probs
-#             wt_log_probs = torch.log_softmax(wt_logits, dim=-1)
-#             mut_log_probs = torch.log_softmax(mut_logits, dim=-1)
-            
-#             # get log prob of true amino acids
-#             wt_aa_log_prob = wt_log_probs[wt_tokens[token_pos]].item()
-#             mut_aa_log_prob = mut_log_probs[mut_tokens[token_pos]].item()
-            
-#             # log likelihood ratio
-#             total_log_ratio += (mut_aa_log_prob - wt_aa_log_prob)
-    
-#     return total_log_ratio
-
-
 class Surrogate(nn.Module):  # cannot import circularly from surrogate.py lol so copied here
     def __init__(self):
         super().__init__()
@@ -287,5 +219,8 @@ class Surrogate(nn.Module):  # cannot import circularly from surrogate.py lol so
         return self.linear_relu_stack(embeddings).squeeze(-1)   # shape [16]
 
 surrogate = Surrogate()
-surrogate.load_state_dict(torch.load(surrogate_path, weights_only=True))
+if torch.cuda.is_available():
+    surrogate.load_state_dict(torch.load(surrogate_path, weights_only=True))
+else:
+    surrogate.load_state_dict(torch.load(surrogate_path, weights_only=True, map_location=torch.device('cpu')))
 surrogate.eval()

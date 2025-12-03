@@ -21,6 +21,7 @@ class ProteinEnv(gym.Env):
         self.aa_to_idx = {aa: i for i, aa in enumerate(self.amino_acids)}
         self.idx_to_aa = {i: aa for aa, i in self.aa_to_idx.items()}
         self.actions = []
+        self.step_count = 0
 
         self.L = len(seq)
         self.fitness_fn = fitness_fn
@@ -49,30 +50,40 @@ class ProteinEnv(gym.Env):
         return pos, aa_idx
 
     def reset(self, *, seed=None, options=None):
+        # print(f'Step count: {self.step_count}')
         super().reset(seed=seed)
         self.state = self.wt.copy()  # back to wild-type
+        self.step_count = 0
         obs = self.state.copy()
         return obs, {}
 
     def step(self, action):
         pos, aa_idx = self._decode_action(action)
-        print(f'Pos: {pos} and aa_idx: {aa_idx}')
+        # print(f'Pos: {pos} and aa_idx: {aa_idx}')
 
         # Apply mutation
         new_state = self.state.copy()
         new_state[pos] = aa_idx
 
         # Reward from fitness function
-        reward = self.fitness_fn(self.idxs_to_letters(self.wt), self.idxs_to_letters(new_state), self.DMS)
+        reward, dataset_used = self.fitness_fn(self.idxs_to_letters(self.wt), self.idxs_to_letters(new_state), self.DMS)
 
         # You can choose episode termination rule:
         # e.g., fixed length episode of mutations
-        terminated = True # keep episodes length 1 to reset to WT?
+        terminated = self.step_count == 3 # keep episodes length 3 then reset to WT
+        # print(f'Terminated: {terminated}')
+        # print(f'Step count: {self.step_count}')
         truncated = False
 
+        self.step_count += 1
         self.state = new_state
         # print(self.idxs_to_letters(new_state))
-        return new_state.copy(), reward, terminated, truncated, {}
+        # import pdb;pdb.set_trace()
+        info = {'dataset_used': dataset_used, 
+        'mutation_count': (self.wt != new_state),
+        'num_mutations_per_variant': (self.wt != new_state).sum()}
+
+        return new_state.copy(), reward, terminated, truncated, info
 
     def render(self):
         seq_str = "".join(self.idx_to_aa[i] for i in self.state)
