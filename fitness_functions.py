@@ -87,63 +87,6 @@ class FastEmbedder:
         Only re-embeds mutated positions, reuses WT for others.
         """
         return embed(mut_seq)
-        #######
-        data = [("mut", mut_seq)]
-        _, _, batch_tokens = batch_converter(data)
-   
-        with torch.no_grad():
-            results = esm8_model(batch_tokens, repr_layers=[6], return_contacts=False)
-        
-        token_embeddings = results["representations"][6][:, 1:-1, :][0].cpu().numpy()  # [L, 320]
-        return token_embeddings.mean(axis=0)  # [320]
-
-        #######
-        
-        # Find mutations
-        L = len(self.wt_seq)
-        mut_positions = [i for i in range(L) if self.wt_seq[i] != mut_seq[i]]
-        
-        if len(mut_positions) == 0:
-            return self.wt_embedding
-        
-        # For single mutations, use cached approximation
-        if len(mut_positions) == 1:
-            pos = mut_positions[0]
-            mut_aa = mut_seq[pos]
-            
-            # Check cache
-            cache_key = (pos, mut_aa)
-            if cache_key not in self.position_embeddings:
-                # Embed just this position in isolation
-                # Quick approximation: embed short peptide around mutation
-                window = 5  # context window
-                start = max(0, pos - window)
-                end = min(L, pos + window + 1)
-                
-                context_seq = mut_seq[start:end]
-                data = [("context", context_seq)]
-                _, _, batch_tokens = batch_converter(data)
-                
-                with torch.no_grad():
-                    results = esm8_model(batch_tokens, repr_layers=[6], return_contacts=False)
-                
-                context_embeddings = results["representations"][6][:, 1:-1, :].cpu().numpy()
-                # Get embedding at mutation position within context
-                local_pos = pos - start
-                mut_position_embedding = context_embeddings[0, local_pos, :]
-                
-                self.position_embeddings[cache_key] = mut_position_embedding
-            
-            mut_position_embedding = self.position_embeddings[cache_key]
-            
-            # Replace WT position with mutant position, recompute mean
-            new_embeddings = self.wt_token_embeddings.copy()
-            new_embeddings[pos] = mut_position_embedding
-            return new_embeddings.mean(axis=0)
-        
-        else:
-            # Multiple mutations - fall back to full embedding
-            return embed(mut_seq)
 
 def esm_pseudo_log_likelihood(wt_seq, mut_seq):
     """Optimized version - reuse masked tensors"""
