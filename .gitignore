@@ -6,3 +6,4 @@ __pycache__
 *.state_dict
 *.egg-info
 protein_logs/*
+protein_logs/
