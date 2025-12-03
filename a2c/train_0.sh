@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -p mit_normal_gpu
-#SBATCH --job-name=a2c
+#SBATCH --job-name=a2c0
 #SBATCH --gres=gpu:1
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -17,7 +17,7 @@ cd /home/jeanshe/orcd/pool/protein-evolution
 START_TIME=$(date +%s) # Get current time in seconds since epoch
 
 echo "Running command..."
-python a2c/train.py
+python a2c/train_0.py
 echo "Command completed."
 
 END_TIME=$(date +%s) # Get current time again

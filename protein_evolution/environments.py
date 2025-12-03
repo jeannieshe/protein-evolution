@@ -72,13 +72,15 @@ class ProteinEnv(gym.Env):
         # You can choose episode termination rule:
         # e.g., fixed length episode of mutations
         terminated = False # there are no natural terminal states for the model; the protein is never "done" evolving
-        truncated = (self.step_count >= 3) # we want to artificially create a limit of 3 steps. 
-
-        # Key distinction: truncated allows for future bootstrapping, meaning that the model could continue to receive reward in the future.
-
+        
+        # Increment step count before checking truncation
         self.step_count += 1
         self.state = new_state
-        self.step_count += 1
+        
+        # Check truncation after incrementing (so we get exactly 6 steps before truncating)
+        truncated = (self.step_count > 6) # truncate after 6 steps (step_count will be 7 after 6 steps)
+
+        # Key distinction: truncated allows for future bootstrapping, meaning that the model could continue to receive reward in the future.
         # print(self.idxs_to_letters(new_state))
         # import pdb;pdb.set_trace()
         info = {'dataset_used': dataset_used, 

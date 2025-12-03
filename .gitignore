@@ -7,3 +7,5 @@ __pycache__
 *.egg-info
 protein_logs/*
 protein_logs/
+logs/
+logs/*

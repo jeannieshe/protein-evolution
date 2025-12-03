@@ -32,7 +32,7 @@ if __name__ == "__main__":
         env=vec_env,
         learning_rate=0.0007, # Parameter default
         n_steps=6, 
-        gae_lambda=1.0,
+        gae_lambda=0,
         gamma=0.99,
         # A2C updates in one go, cannot set n_epochs=10,
         max_grad_norm=0.5, # To try to mimic PPO's clip_range=0.2,

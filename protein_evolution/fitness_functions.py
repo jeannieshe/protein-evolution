@@ -31,20 +31,23 @@ def fitness_ESM_DMS(wt, mut, DMS, esm_mean=-1.053, esm_std=2.006, dms_mean=-1.22
             alpha: Weight for ESM (1-alpha for DMS). 0.5 = equal weight.
     '''
     ESM = esm_pseudo_log_likelihood(wt, mut)
+    dataset = ''
 
     if len(DMS.loc[DMS.mutated_sequence == mut].DMS_score) > 0:   # exists in dataset
         DMS_score = DMS.loc[DMS.mutated_sequence == mut].DMS_score.item()
+        dataset = 'DMS'
         print('Used DMS')
 
     else:   # surrogate!
         DMS_score = surrogate(torch.tensor(embed(mut))).item()
         print('Used surrogate')
+        dataset = 'surrogate'
 
     # Z score to normalize the weight between these two scores, ensuring one is not dominant
     ESM_normalized = (ESM - esm_mean) / esm_std
     DMS_normalized = (DMS_score - dms_mean) / dms_std
 
-    return alpha * ESM_normalized + (1 - alpha) * DMS_normalized
+    return alpha * ESM_normalized + (1 - alpha) * DMS_normalized, dataset
 
 #### HELPERS
 def embed(seq):
