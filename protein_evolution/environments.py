@@ -78,7 +78,7 @@ class ProteinEnv(gym.Env):
         self.state = new_state
         
         # Check truncation after incrementing (so we get exactly 6 steps before truncating)
-        truncated = (self.step_count > 6) # truncate after 6 steps (step_count will be 7 after 6 steps)
+        truncated = (self.step_count > 5) # truncate after 6 steps (step_count will be 7 after 6 steps)
 
         # Key distinction: truncated allows for future bootstrapping, meaning that the model could continue to receive reward in the future.
         # print(self.idxs_to_letters(new_state))
