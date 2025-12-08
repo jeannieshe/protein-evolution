@@ -1,19 +1,5 @@
-## protein evolution
+## In silico protein evolution with reinforcement learning
 
-### 11/15
-- Katie has slayed
-- Implemented PPO and ProteinEvolution gymnasium
+Inspired by EVOLVEpro and MIT's 6.7920 Reinforcement Learning, we were curious to ask how simple RL policies would perform against a very successful random forest regression model. We construct an MDP to represent this task and train agents to explore an action space representing point mutations for an AAV capsid protein.
 
-Next steps:
-- Jeannie train all 6 DMS datasets to create individual MLPs for each
-- Hyperparameter tuning for TRPO vs PPO
-
-- Fitness function
-- Diversity in sequences -> substantially different from WT
-- Define fitness function measuring Levenshtein diff between WT + ESM fitness + 
-
-- Jeannie -> MLP
-- Katie -> fitness func!
-
-### 11/
-- 
+For more information, we direct you to our report and slides in this repo.
