@@ -3,15 +3,15 @@ import sys
 import pickle
 import numpy as np
 
-MODEL_PATH = "" # a .pkl file
+MODEL_PATH = '/om/user/kspiv/protein-evolution/logs/2025-12-09_19:01:01/ppo_metrics.pkl' # a .pkl file
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        MODEL_PATH = sys.argv[1]
-    else:
-        print("Error: MODEL_PATH must be set. Pass it as an argument.")
-        print("Usage: python calculate_stats_from_model.py [model_path]")
-        sys.exit(1)
+    # if len(sys.argv) > 1:
+    #     MODEL_PATH = sys.argv[1]
+    # else:
+    #     print("Error: MODEL_PATH must be set. Pass it as an argument.")
+    #     print("Usage: python calculate_stats_from_model.py [model_path]")
+    #     sys.exit(1)
 
     with open(MODEL_PATH, 'rb') as f:
         metrics = pickle.load(f)

@@ -1,6 +1,12 @@
 import torch, esm, pickle, os
 import numpy as np
 import torch.nn as nn
+import torch.nn.functional as F
+
+import sys;sys.path.append('/om/user/kspiv/protein-evolution/protein_evolution/')
+sys.path.append('/om/user/kspiv/protein-evolution/models/')
+sys.path.append('/om/user/kspiv/protein-evolution/')
+
 from protein_evolution.config import SURROGATE_PATH
 
 surrogate_path = SURROGATE_PATH
@@ -18,7 +24,8 @@ def fitness_ESM(wt, mut, *args):
      '''
     return esm_pseudo_log_likelihood(wt, mut), 'ESM'
 
-def fitness_ESM_DMS(wt, mut, DMS, esm_mean=-1.053, esm_std=2.006, dms_mean=-1.226, dms_std=3.045, alpha=0.5):
+# def fitness_ESM_DMS(wt, mut, DMS, esm_mean=-1.053, esm_std=2.006, dms_mean=-1.226, dms_std=3.045, alpha=0.5):
+def fitness_ESM_DMS(wt, mut, DMS, esm_mean=-0.398, esm_std=1.378, dms_mean=2.658, dms_std=1.058, alpha=0.5):
     ''' Calculate fitness based on ESM as well as querying DMS dataset. 
         Normalizes both scores by using the mean and STD computed with compute_esm_dms_statistics.py
         Assumes DMS has columns `mutated_sequence` and `DMS_score`
@@ -34,7 +41,8 @@ def fitness_ESM_DMS(wt, mut, DMS, esm_mean=-1.053, esm_std=2.006, dms_mean=-1.22
     dataset = ''
 
     if len(DMS.loc[DMS.mutated_sequence == mut].DMS_score) > 0:   # exists in dataset
-        DMS_score = DMS.loc[DMS.mutated_sequence == mut].DMS_score.item()
+        # DMS_score = DMS.loc[DMS.mutated_sequence == mut].DMS_score.item()
+        DMS_score = DMS.loc[DMS.mutated_sequence == mut].loc[:,'DMS_score'].mean().item() #duplicates?
         dataset = 'DMS'
         print('Used DMS')
 
@@ -164,24 +172,21 @@ def esm_pseudo_log_likelihood(wt_seq, mut_seq):
     
     return total_log_ratio
 
-class Surrogate(nn.Module):  # cannot import circularly from surrogate.py lol so copied here
+class Surrogate(nn.Module):
     def __init__(self):
         super().__init__()
-        self.linear_relu_stack = nn.Sequential(
-            nn.Linear(320, 320),   # esm embedding is length 320
-            nn.ReLU(),
-            nn.Linear(320, 128),
-            nn.ReLU(),
-            nn.Linear(128, 1),
-        )
+        self.l1 = nn.Linear(320, 320)
+        self.l2 = nn.Linear(320, 128)
+        self.l3 = nn.Linear(128, 1)
     
     def forward(self, embeddings):
         # embeddings = 16 x 320 or similar batch size x esm embedding size
-        return self.linear_relu_stack(embeddings).squeeze(-1)   # shape [16]
-
-# surrogate = Surrogate()
-# surrogate.load_state_dict(torch.load(surrogate_path, weights_only=True))
-# surrogate.eval()
+        x = self.l1(embeddings)
+        x = F.relu(x).square()
+        x = self.l2(x)
+        x = F.relu(x).square()
+        x = self.l3(x)
+        return x.squeeze(-1)   # shape [16]
 
 surrogate = Surrogate()
 if torch.cuda.is_available():

@@ -103,10 +103,19 @@ class ProteinRLLogger(BaseCallback):
         # Mutation Counts Per Position
         # -----------------------
         plt.subplot(1,3,2)
-        plt.bar(range(561,589), self.mutation_counts[560:588])
-        plt.xlabel("Position")
-        plt.ylabel("Mutation count")
-        plt.title("Mutation frequency per position")
+        # plt.bar(range(561,589), self.mutation_counts[560:588])
+        try:
+            plt.bar(range(283), self.mutation_counts)
+            plt.xlabel("Position")
+            plt.ylabel("Mutation count")
+            plt.title("Mutation frequency per position")
+        except:
+            plt.plot(self.all_rewards, label="avg reward")
+            plt.plot(self.top_rewards, label="top reward")
+            plt.xlabel("Rollout")
+            plt.ylabel("Reward")
+            plt.legend()
+            plt.title("Reward over training")
 
         # -----------------------
         # Distribution: Mutations per Variant
@@ -125,19 +134,23 @@ class ProteinRLLogger(BaseCallback):
         # -----------------------
         # 20 × 28 Heatmap of Actions
         # -----------------------
-        heat = np.zeros((20, 28), dtype=int)
+        # heat = np.zeros((20, 28), dtype=int)
+        heat = np.zeros((20, 238), dtype=int)
         for (pos, aa_idx) in self.actions:
             heat[aa_idx, pos] += 1
 
         plt.figure(figsize=(10,6))
         plt.imshow(heat, aspect='auto', origin='lower')
         plt.colorbar(label="Mutation Count")
-        plt.xlabel("Position (561 → 588)")
+        # plt.xlabel("Position (561 → 588)")
+        plt.xlabel("Position (1-238")
         plt.ylabel("AA Index (0–19)")
 
         # X-axis ticks → actual sequence positions
-        positions = np.arange(561, 588 + 1)
-        plt.xticks(np.arange(28), positions, rotation=90)
+        # positions = np.arange(561, 588 + 1)
+        positions = np.arange(1, 238 + 1)
+        # plt.xticks(np.arange(28), positions, rotation=90)
+        plt.xticks(np.arange(238), positions, rotation=90)
 
         # Y-axis ticks → amino acids
         aa_labels = [self.locals['env'].envs[0].idx_to_aa[i] for i in range(20)]

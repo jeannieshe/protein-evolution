@@ -1,15 +1,15 @@
 import pandas as pd
 import sys
 
-PREDICTION_PATH = ""
+PREDICTION_PATH = '/om/user/kspiv/protein-evolution/logs/2025-12-09_19:32:34_sampled_variants.csv'
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        PREDICTION_PATH = sys.argv[1]
-    else:
-        print("Error: PREDICTION_PATH must be set. Pass it as an argument.")
-        print("Usage: python calculate_stats_from_variants.py [prediction_path]")
-        sys.exit(1)
+    # if len(sys.argv) > 1:
+    #     PREDICTION_PATH = sys.argv[1]
+    # else:
+    #     print("Error: PREDICTION_PATH must be set. Pass it as an argument.")
+    #     print("Usage: python calculate_stats_from_variants.py [prediction_path]")
+    #     sys.exit(1)
 
     data = pd.read_csv(PREDICTION_PATH)
 

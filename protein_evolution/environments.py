@@ -31,8 +31,8 @@ class ProteinEnv(gym.Env):
         self.wt = np.array([self.aa_to_idx[a] for a in seq], dtype=np.int32)
 
         # action = choose a position to mutate, and choose an aa to mutate to
-        # self.action_space = spaces.Discrete(self.L * 20)   # talk about indel limitation in write-up
-        self.action_space = spaces.MultiDiscrete([588-561+1, 20])  # DMS dataset only mutates in positions 561-588
+        self.action_space = spaces.MultiDiscrete([238, 20])
+        # self.action_space = spaces.MultiDiscrete([588-561+1, 20])  # DMS dataset only mutates in positions 561-588
 
         # observation = vector of length L with values in [0,19]
         self.observation_space = spaces.MultiDiscrete([20] * self.L)
@@ -46,7 +46,7 @@ class ProteinEnv(gym.Env):
 
     def _decode_action(self, action):
         pos, aa_idx = action
-        pos += 560
+        # pos += 560
         self.actions.append((pos, aa_idx))
         return pos, aa_idx
 

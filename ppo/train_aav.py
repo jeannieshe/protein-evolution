@@ -23,12 +23,12 @@ from datetime import datetime
 NUM_ENVS = 64
 
 if __name__ == "__main__":
-    with open('data/avgfp_wt.txt', 'r') as file:
+    with open('data/aav_wt.txt', 'r') as file:
         wt = file.readline().strip()
 
     def make_env():
         # Provide your own initial sequence + fitness_fn
-        return ProteinEnv(wt, fitness_ESM_DMS, 'data/Somermeyer2022_avGFP_dms_filtered.csv')
+        return ProteinEnv(wt, fitness_ESM_DMS, 'data/aav_dms.csv')
 
     vec_env = DummyVecEnv([make_env for _ in range(NUM_ENVS)])
 
@@ -51,4 +51,4 @@ if __name__ == "__main__":
     logger_cb = ProteinRLLogger(check_freq=1)
     callback = CallbackList([tqdm_cb, logger_cb])
     model.learn(total_timesteps=total_timesteps, callback=callback)
-    model.save("/om/user/kspiv/protein-evolution/ppo/avgfp_01142026")
+    model.save("/om/user/kspiv/protein-evolution/ppo/ppo_01122026")
